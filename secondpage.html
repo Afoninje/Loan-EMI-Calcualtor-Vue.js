@@ -37,25 +37,25 @@
     >
       <li class="nav-item m-2">
         <a
-          class="nav-link active"
+          class="nav-link"
           id="pills-home-tab"
           data-toggle="pill"
           href="index.html"
           role="tab"
           aria-controls="pills-home"
-          aria-selected="true"
+          aria-selected="false"
           >EMI Calculator</a
         >
       </li>
       <li class="nav-item m-2">
         <a
-          class="nav-link"
+          class="nav-link active"
           id="pills-profile-tab"
           data-toggle="pill"
           href="secondpage.html"
           role="tab"
           aria-controls="pills-profile"
-          aria-selected="false"
+          aria-selected="true"
           >Eligibility Calculator</a
         >
       </li>
@@ -78,18 +78,19 @@
         ...
       </div>
     </div>
+
     <div id="app" class="page-content">
       <div class="form-v10-content">
         <form class="form-detail">
           <div class="form-left">
-            <h2>EMI Calculator</h2>
+            <h2>Eligibility Calculator</h2>
 
             <div class="form-row">
-              <h4>Loan Amount</h4>
+              <h4>Monthly Income</h4>
               <input
                 type="text"
-                v-model="amount"
-                placeholder="Enter The Loan Amount (Indian Rupees)"
+                v-model="monthlyincome"
+                placeholder="Enter Monthly Income(Indian Rupees)"
                 required
               />
             </div>
@@ -112,25 +113,38 @@
                 placeholder="Duration (Years)"
               />
             </div>
+            <div class="form-row">
+              <h4>Current EMI's</h4>
+              <input
+                required
+                type="text"
+                v-model="currentEMI"
+                placeholder="Current EMI's Being Paid , Enter 0 If None"
+              />
+            </div>
             <button
               type="submit"
               class="btn btn-dark btn-lg btn-block"
-              @click.prevent="calculateEMI()"
+              @click.prevent="calculateEligibility()"
             >
               Calculate
             </button>
+
             <div v-cloak v-show="submitted1">
               <div class="form-row">
                 <h4></h4>
               </div>
               <div class="form-row">
-                <h4>EMI: {{emi}}</h4>
+                <h4>Maximum Loan Amount: {{maximumLoanAmount}}</h4>
               </div>
               <div class="form-row">
-                <h4>Loan Amount: {{amount}}</h4>
+                <h4>EMI on Loan: {{emi}}</h4>
               </div>
               <div class="form-row">
-                <h4>Interest Amount: {{interestAmount}}</h4>
+                <h4>Maximum Home Value: {{maximumHomeValue}}</h4>
+              </div>
+              <div class="form-row">
+                <h4>Interest Payable: {{interestAmount}}</h4>
               </div>
               <div class="form-row">
                 <h4>Total Amount: {{totalAmount}}</h4>
@@ -163,22 +177,38 @@
           interestAmount: "",
           interestPerMonth: "",
           interest2: "",
+          monthlyincome: "",
+          currentEMI: "",
+          emiPerMonth: "",
+          emiPerLakh: "",
+          maximumLoanAmount: "",
+          maximumHomeValue: "",
         },
 
         methods: {
-          calculateEMI: function () {
+          calculateEligibility: function () {
             this.submitted1 = true;
             this.interestPerMonth = this.interest / 12 / 100;
             this.interest2 = this.interestPerMonth + 1;
             this.durationInMonths = this.duration * 12;
             this.interest2 = Math.pow(this.interest2, this.durationInMonths);
+            this.emiPerLakh =
+              100000 *
+              this.interestPerMonth *
+              (this.interest2 / (this.interest2 - 1));
+            this.maximumLoanAmount =
+              ((this.monthlyincome * 0.6 - this.currentEMI) / this.emiPerLakh) *
+              100000;
+            this.maximumHomeValue = this.maximumLoanAmount / 0.8;
+            this.maximumLoanAmount = Math.round(this.maximumLoanAmount);
+            this.maximumHomeValue = Math.round(this.maximumHomeValue);
             this.emi =
-              this.amount *
+              this.maximumLoanAmount *
               this.interestPerMonth *
               (this.interest2 / (this.interest2 - 1));
             this.emi = Math.round(this.emi);
-            this.totalAmount = this.emi * this.durationInMonths;
-            this.interestAmount = this.totalAmount - this.amount;
+            this.totalAmount = this.duration * 12 * this.emi;
+            this.interestAmount = this.totalAmount - this.maximumLoanAmount;
           },
         },
       });
