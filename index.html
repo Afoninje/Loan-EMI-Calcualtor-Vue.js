@@ -103,26 +103,43 @@
               Calculate
             </button>
             <div v-cloak v-show="submitted1">
-              <div class="form-row">
-                <h4></h4>
-              </div>
-              <div class="form-row">
-                <h4>EMI: {{emi}}</h4>
-              </div>
-              <div class="form-row">
-                <h4>Loan Amount: {{amount}}</h4>
-              </div>
-              <div class="form-row">
-                <h4>Interest Amount: {{interestAmount}}</h4>
-              </div>
-              <div class="form-row">
-                <h4>Total Amount: {{totalAmount}}</h4>
-              </div>
+              <h2>Break-Up Of Total Payment</h2>
+              <pie-chart
+                thousands=","
+                :data="[['Amount Of Interest', interestAmount], ['Base Amount', amount2]]"
+              ></pie-chart>
             </div>
           </div>
 
-          <div class="form-right">
-            <h2>Graph</h2>
+          <div class="form-right" v-cloak v-show="submitted2">
+            <h2>Calculated Values</h2>
+            <div class="form-row">
+              <h4>EMI: {{emi}}</h4>
+            </div>
+            <div class="form-row">
+              <h4>Loan Amount: {{amount2}}</h4>
+            </div>
+            <div class="form-row">
+              <h4>Interest Amount: {{interestAmount}}</h4>
+            </div>
+            <div class="form-row">
+              <h4>Total Amount: {{totalAmount}}</h4>
+            </div>
+            <div class="form-row">
+              <h4></h4>
+            </div>
+            <div class="form-row">
+              <h4></h4>
+            </div>
+            <div class="form-row">
+              <h4></h4>
+            </div>
+
+            <br />
+            <br />
+
+            <h2>Loan Remaining At The End Of Each Year</h2>
+            <column-chart thousands="," :data="columnChartData"></column-chart>
           </div>
         </form>
       </div>
@@ -130,38 +147,53 @@
 
     <script src="https://cdn.jsdelivr.net/npm/vue@2.x/dist/vue.js"></script>
 
+    <script src="https://unpkg.com/chart.js@2.8.0/dist/Chart.bundle.js"></script>
+    <script src="https://unpkg.com/vue-chartkick@0.5.1"></script>
     <script>
       var vm = new Vue({
         el: "#app",
 
         data: {
           amount: "",
+          amount2: "",
           interest: "",
           duration: "",
           durationInMonths: "",
           submitted1: false,
+          submitted2: false,
           emi: "",
           interest: "",
           totalAmount: "",
           interestAmount: "",
           interestPerMonth: "",
           interest2: "",
+          columnChartData: [],
         },
 
         methods: {
           calculateEMI: function () {
+            this.columnChartData = [];
+            this.amount2 = this.amount;
             this.submitted1 = true;
+            this.submitted2 = true;
             this.interestPerMonth = this.interest / 12 / 100;
             this.interest2 = this.interestPerMonth + 1;
             this.durationInMonths = this.duration * 12;
             this.interest2 = Math.pow(this.interest2, this.durationInMonths);
             this.emi =
-              this.amount *
+              this.amount2 *
               this.interestPerMonth *
               (this.interest2 / (this.interest2 - 1));
             this.emi = Math.round(this.emi);
             this.totalAmount = this.emi * this.durationInMonths;
-            this.interestAmount = this.totalAmount - this.amount;
+            this.interestAmount = this.totalAmount - this.amount2;
+
+            for (i = 1; i <= this.duration; i++) {
+              this.columnChartData.push([
+                2020 + i,
+                this.totalAmount - this.emi * 12 * i,
+              ]);
+            }
           },
         },
       });

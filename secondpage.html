@@ -27,6 +27,7 @@
       integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO"
       crossorigin="anonymous"
     />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.3/Chart.min.js"></script>
   </head>
 
   <body>
@@ -60,6 +61,7 @@
         >
       </li>
     </ul>
+
 
     <div id="app" class="page-content">
       <div class="form-v10-content">
@@ -113,35 +115,58 @@
             </button>
 
             <div v-cloak v-show="submitted1">
-              <div class="form-row">
-                <h4></h4>
-              </div>
-              <div class="form-row">
-                <h4>Maximum Loan Amount: {{maximumLoanAmount}}</h4>
-              </div>
-              <div class="form-row">
-                <h4>EMI on Loan: {{emi}}</h4>
-              </div>
-              <div class="form-row">
-                <h4>Maximum Home Value: {{maximumHomeValue}}</h4>
-              </div>
-              <div class="form-row">
-                <h4>Interest Payable: {{interestAmount}}</h4>
-              </div>
-              <div class="form-row">
-                <h4>Total Amount: {{totalAmount}}</h4>
-              </div>
+              <h2>Break-Up Of Total Payment</h2>
+              <pie-chart
+                thousands=","
+                :data="[['Amount Of Interest', interestAmount], ['Base Amount', maximumLoanAmount]]"
+              ></pie-chart>
             </div>
           </div>
 
-          <div class="form-right">
-            <h2>Graph</h2>
+          <div class="form-right" v-cloak v-show="submitted2">
+            <div v-cloak v-show="submitted1">
+              <h2>Calculated Values:</h2>
+                <div class="form-row">
+                  <h4></h4>
+                </div>
+                <div class="form-row">
+                  <h4>Maximum Loan Amount: {{maximumLoanAmount}}</h4>
+                </div>
+                <div class="form-row">
+                  <h4>EMI on Loan: {{emi}}</h4>
+                </div>
+                <div class="form-row">
+                  <h4>Maximum Home Value: {{maximumHomeValue}}</h4>
+                </div>
+                <div class="form-row">
+                  <h4>Interest Payable: {{interestAmount}}</h4>
+                </div>
+                <div class="form-row">
+                  <h4>Total Amount: {{totalAmount}}</h4>
+                </div>
+                <div class="form-row">
+                </div>
+                <div class="form-row">
+                </div>
+                <div class="form-row">
+                </div>
+            
+            <br />
+            <br />
+            <br />
+            <br />
+        
+
+            <h2>Loan Remaining At The End Of Each Year</h2>
+            <column-chart thousands="," :data="columnChartData"></column-chart>
           </div>
         </form>
       </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/vue@2.x/dist/vue.js"></script>
+    <script src="https://unpkg.com/chart.js@2.8.0/dist/Chart.bundle.js"></script>
+    <script src="https://unpkg.com/vue-chartkick@0.5.1"></script>
 
     <script>
       var vm = new Vue({
@@ -149,10 +174,12 @@
 
         data: {
           amount: "",
+          amount2: "", 
           interest: "",
           duration: "",
           durationInMonths: "",
           submitted1: false,
+          submitted2: false,
           emi: "",
           interest: "",
           totalAmount: "",
@@ -165,11 +192,16 @@
           emiPerLakh: "",
           maximumLoanAmount: "",
           maximumHomeValue: "",
+          columnChartData: [],
         },
 
         methods: {
           calculateEligibility: function () {
+
+            this.columnChartData = [];
+            this.amount2 = this.amount;
             this.submitted1 = true;
+            this.submitted2 = true;
             this.interestPerMonth = this.interest / 12 / 100;
             this.interest2 = this.interestPerMonth + 1;
             this.durationInMonths = this.duration * 12;
@@ -191,6 +223,13 @@
             this.emi = Math.round(this.emi);
             this.totalAmount = this.duration * 12 * this.emi;
             this.interestAmount = this.totalAmount - this.maximumLoanAmount;
+
+            for (i = 1; i <= this.duration; i++) {
+              this.columnChartData.push([
+                "Year:" + i,
+                this.totalAmount - this.emi * 12 * i,
+              ]);
+            }
           },
         },
       });
